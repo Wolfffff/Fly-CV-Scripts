@@ -8,6 +8,8 @@ ap = argparse.ArgumentParser()
 ap.add_argument("-i", "--image", required = True, help = "Path to the image")
 args = vars(ap.parse_args())
 
+
+
 def calculateHoughCircles(fileName):
     # load the image, clone it for output
     image = cv2.imread(fileName)
@@ -48,13 +50,32 @@ def calculateHoughCircles(fileName):
                     #cv2.imshow("test", np.hstack([crop_img]))
                     #print((x-r),(x+r),(y-r),(y+r))
                     crop = output[(y-r):(y+r),(x-r):(x+r)]
+                    cropGray = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
+                    ret,threshCrop = cv2.threshold(cropGray,0,230,cv2.THRESH_TOZERO+cv2.THRESH_OTSU)
+                    height,width = 2*r, 2*r
+                    mask = np.zeros((height,width), np.uint8)
+                    cv2.circle(mask,(r,r),(r-25),(255,255,255),thickness=-1)
+ #                  cv2.imshow("crop", threshCrop)
+                    out = threshCrop*mask
+                    white = 255-mask
+                    newIm = out + white
+                    ret,secondThresh = cv2.threshold(newIm,60,255,cv2.THRESH_BINARY)
+                    cv2.imshow("out", secondThresh)
+                    
+
+ 
+                    #frame, contours, hierarchy = cv2.findContours(threshCrop, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+ 
+                    #print(contours)
+                    #cv2.drawContours(threshCrop, contours, -1, (50,50,50), 10)
+                    #cv2.imshow("crop", threshCrop)
                     #cv2.imshow("crop", crop)
-                    #cv2.waitKey(0)
-                    cv2.circle(output, (x, y), r, (0, 255, 0), 4)
+                    cv2.waitKey(0)
+                    #cv2.circle(output, (x, y), r, (0, 255, 0), 4)
                     #cv2.rectangle(output, (x - 5, y - 5), (x + 5, y + 5), (0, 128, 255), -1)
      
             # show the output image
-            cv2.imshow("output", np.hstack([output]))
-            cv2.waitKey(0)
+            #cv2.imshow("output", np.hstack([output]))
+            #cv2.waitKey(0)
     return
 calculateHoughCircles(args["image"])
