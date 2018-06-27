@@ -1,15 +1,10 @@
-import numpy as np
-import argparse
-import imutils
-import cv2
-import os
+import numpy as np import argparse import imutils import cv2 import os
 import warnings
  
 # construct the argument parser and parse the arguments
-#ap = argparse.ArgumentParser()
-#ap.add_argument("-d", "--dir", required = True, help = "Path to the image")
-#args = vars(ap.parse_args())
-args = ["/Users/Wolf/Desktop/PlateImages"]
+ap = argparse.ArgumentParser()
+ap.add_argument("-d", "--dir", required = True, help = "Path to the image")
+args = vars(ap.parse_args())
 
 
 def calculateHoughCircles(fileName):
@@ -72,11 +67,11 @@ def calculateHoughCircles(fileName):
                 l.sort(key = lambda x: x[0])
 
             for i in range(8):
-                for n in range(12):
+                for n in range(0, 11):
                         (x,y,r) = Lists[i][n]
                         xo = np.round(x).astype("int")
                         yo = np.round(y).astype("int")
-                        ro = np.round(r).astype("int")
+                        yo = np.round(r).astype("int")
 
                         crop = output[(y-r):(y+r),(x-r):(x+r)]
                         crop_gray = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
@@ -88,8 +83,11 @@ def calculateHoughCircles(fileName):
                         height,width = 2*r, 2*r
                         mask = np.zeros((height,width), np.uint8)
                         cv2.circle(mask,(r,r),(r-25),(255,255,255),thickness=-1)
-
+                        out = threshCrop*mask
+                        white = 255-mask
+                        new_im = out + white
                         masked_data = cv2.bitwise_and(tc2, tc2, mask=mask)
+                        new_im = masked_data
 
                         image, contours, hierarchy = cv2.findContours(masked_data, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
                         contour_list = []
