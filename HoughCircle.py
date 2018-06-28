@@ -46,8 +46,12 @@ def calculateHoughCircles(fileName):
     # Standardized pictures should fix this problem. We have a ~95% success rate
 
     # First check for 96 wells
+    #warn = False
+    #print(circles.shape)
     if circles.shape[1] != 96:
-        warnings.warn("96 wells were not detected")
+        warnings.warn("96 wells were not detected!")
+    #    warn = True
+
 
     if circles is not None:
         # convert the (x, y) coordinates and radius of the circles to integers
@@ -69,42 +73,44 @@ def calculateHoughCircles(fileName):
             if (len(l) != 12):
                 warnings.warn("Wrong count of wells in a row")
             l.sort(key=lambda x: x[0])
-            for i in range(8):
-                for n in range(12):
-                    (x, y, r) = Lists[i][n]
-                    xo = np.round(x).astype("int")
-                    yo = np.round(y).astype("int")
-                    ro = np.round(r).astype("int")
+        for i in range(8):
+            for n in range(12):
+                (x, y, r) = Lists[i][n]
+                xo = np.round(x).astype("int")
+                yo = np.round(y).astype("int")
+                ro = np.round(r).astype("int")
 
-                    crop = output[(y - r):(y + r), (x - r):(x + r)]
-                    crop_gray = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
-                    ret, threshCrop1 = cv2.threshold(crop_gray, 0, 255, cv2.THRESH_TOZERO + cv2.THRESH_OTSU)
-                    ret, threshCrop = cv2.threshold(crop_gray, (ret - 15), 255, cv2.THRESH_TOZERO)
+                crop = output[(y - r):(y + r), (x - r):(x + r)]
+                crop_gray = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
+                ret, threshCrop1 = cv2.threshold(crop_gray, 0, 255, cv2.THRESH_TOZERO + cv2.THRESH_OTSU)
+                ret, threshCrop = cv2.threshold(crop_gray, (ret - 15), 255, cv2.THRESH_TOZERO)
 
-                    ret2, tc2 = cv2.threshold(threshCrop, 1, 255, cv2.THRESH_BINARY_INV)
+                ret2, tc2 = cv2.threshold(threshCrop, 1, 255, cv2.THRESH_BINARY_INV)
 
-                    height, width = 2 * r, 2 * r
-                    mask = np.zeros((height, width), np.uint8)
-                    cv2.circle(mask, (r, r), (r - 25), (255, 255, 255), thickness=-1)
-                    masked_data = cv2.bitwise_and(tc2, tc2, mask=mask)
+                height, width = 2 * r, 2 * r
+                mask = np.zeros((height, width), np.uint8)
+                cv2.circle(mask, (r, r), (r - 25), (255, 255, 255), thickness=-1)
+                masked_data = cv2.bitwise_and(tc2, tc2, mask=mask)
 
-                    image, contours, hierarchy = cv2.findContours(masked_data, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-                    contour_list = []
-                    area = 0
-                    for contour in contours:
-                        approx = cv2.approxPolyDP(contour, 0.01 * cv2.arcLength(contour, True), True)
-                        tempArea = cv2.contourArea(contour)
-                        (x, y), radius = cv2.minEnclosingCircle(contour)
+                image, contours, hierarchy = cv2.findContours(masked_data, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+                contour_list = []
+                area = 0
+                for contour in contours:
+                    approx = cv2.approxPolyDP(contour, 0.01 * cv2.arcLength(contour, True), True)
+                    tempArea = cv2.contourArea(contour)
+                    (x, y), radius = cv2.minEnclosingCircle(contour)
 
-                        if (len(approx) > 5) & (tempArea > 1000) & (3.1415 * (radius ** 2) / 7 < tempArea):
-                            contour_list.append(contour)
-                            area = tempArea
-                    cv2.drawContours(masked_data, contour_list, -1, (50, 50, 50), 3)
-                    cv2.circle(output, (xo, yo), ro, (0, 255, 0), 4)
-                    rows.append({'NumericalLocation(Row)': str(i + 1),'NumericalLocation(Col)':str(n + 1), 'Area': area, 'FileName': os.path.basename(fileName)})
+                    if (len(approx) > 5) & (tempArea < 5000) & (tempArea > 1000) & (3.1415 * (radius ** 2) / 7 < tempArea):
+                        contour_list.append(contour)
+                        area = tempArea
+                cv2.drawContours(masked_data, contour_list, -1, (50, 50, 50), 3)
+                cv2.circle(output, (xo, yo), ro, (0, 255, 0), 4)
+                rows.append({'NumericalLocation(Row)': str(i + 1), 'NumericalLocation(Col)': str(n + 1), 'Area': area,'FileName': os.path.basename(fileName)})
+        #if warn == True:
+        #    cv2.imshow("output", np.hstack([output]))
+        #    cv2.waitKey(0)
 
-    #cv2.imshow("output", np.hstack([output]))
-    #cv2.waitKey(0)
+
 
 
 
