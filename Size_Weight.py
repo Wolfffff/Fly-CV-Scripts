@@ -119,15 +119,16 @@ def calculateHoughCircles(fileName):
                 cv2.circle(output, (xo, yo), ro, (0, 255, 0), 4)
                 rows.append({'NumericalLocation(Row)': str(i + 1), 'NumericalLocation(Col)': str(n + 1), 'Area': area,'FileName': os.path.basename(fileName)})
         if warn:
-            cv2.imshow("output", np.hstack([output]))
+            cv2.imshow("output", output)
             cv2.waitKey(0)
 
 
 
 
-
+total = 0
 for file in os.listdir(args[0]):
     if file.endswith(".tiff"):
+        total = total + 1
         print(os.path.join(args[0], file))
         calculateHoughCircles(os.path.join(args[0], file))
 
@@ -137,7 +138,6 @@ with open('Output.csv', 'w') as csvfile:
     writer.writeheader()
     writer.writerows(rows)
     
-total = len(os.listdir(args[0]))
 print("Used ", count, " out of ", total, " images.")
 
 if count/total < 0.75:
